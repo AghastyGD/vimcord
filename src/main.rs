@@ -3,6 +3,7 @@ mod state;
 mod discord;
 mod server;
 mod sync;
+mod net;
 
 use cli::{Cli, Command};
 use clap::Parser;
@@ -10,6 +11,8 @@ use state::PresenceState;
 use tokio::sync::watch;
 use discord::Discord;
 use sync::spawn_discord_sync;
+use net::resolve_host;
+use reqwest::Client;
 
 
 #[tokio::main]
@@ -41,11 +44,45 @@ async fn main() {
         }
 
         Command::Update { details, state, file, workspace } => {
-            println!("CLI update")
+            run_cli_update(details, state, file, workspace).await;
         }
 
         Command::Clear => {
-            println!("CLI clear")
+            run_cli_clear().await;
         }
+    }
+}
+
+async fn run_cli_update(
+    details: Option<String>,
+    state: Option<String>,
+    file: Option<String>,
+    workspace: Option<String>,
+) {
+    let host = resolve_host();
+    let url = format!("http://{}:8787/update", host);
+
+    let payload = PresenceState {
+        details: details.unwrap_or_else(|| "In Editor".into()),
+        state: state.unwrap_or_else(|| "Editing".into()),
+        file,
+        workspace,
+    };
+
+    let client = Client::new();
+    match client.post(url).json(&payload).send().await {
+        Ok(_) => println!("vimcord: presence updated"),
+        Err(e) => eprintln!("vimcord error: {}", e),
+    }
+}
+
+async fn run_cli_clear() {
+    let host = resolve_host();
+    let url = format!("http://{}:8787/clear", host);
+
+    let client = Client::new();
+    match client.post(url).send().await {
+        Ok(_) => println!("vimcord: presence cleared"),
+        Err(e) => eprintln!("vimcord error: {}", e)
     }
 }
