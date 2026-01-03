@@ -1,28 +1,26 @@
+use tokio::sync::watch;
 use axum::{Json, Router, routing::post};
-use std::sync::{Arc, Mutex};
 use crate::state::PresenceState;
 
-pub fn router(state: Arc<Mutex<PresenceState>>) -> Router {
+pub fn router(tx: watch::Sender<PresenceState>) -> Router {
     Router::new()
         .route("/update", post(update))
         .route("/clear", post(clear))
-        .with_state(state)
+        .with_state(tx)
 }
 
 async fn update(
-    axum::extract::State(state): axum::extract::State<Arc<Mutex<PresenceState>>>,
+    axum::extract::State(tx): axum::extract::State<watch::Sender<PresenceState>>,
     Json(payload): Json<PresenceState>,
 ) -> &'static str {
-    let mut s = state.lock().unwrap();
-    *s = payload;
+    let _ = tx.send(payload);
     "ok"
 }
 
 async fn clear(
-    axum::extract::State(state): axum::extract::State<Arc<Mutex<PresenceState>>>,
+    axum::extract::State(tx): axum::extract::State<watch::Sender<PresenceState>>,
 ) -> &'static str {
-    let mut s = state.lock().unwrap();
-    *s = PresenceState::default();
+    let _ = tx.send(PresenceState::default());
     "cleared"
 }
 
