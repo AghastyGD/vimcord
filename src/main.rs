@@ -13,12 +13,14 @@ use discord::Discord;
 use sync::spawn_discord_sync;
 use net::resolve_host;
 use reqwest::Client;
+use std::sync::Arc;
 
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    
+
     let cli = Cli::parse();
 
     match cli.command.unwrap_or(Command::Daemon) {
@@ -30,17 +32,21 @@ async fn main() {
                 .parse::<u64>()
                 .expect("DISCORD_CLIENT_ID must be a valid u64");
 
-            let discord = Discord::new(client_id);
+            let discord = Arc::new(Discord::new(client_id));
 
-            spawn_discord_sync(rx, discord);
-            
+            spawn_discord_sync(rx, Arc::clone(&discord));
+
             let app = server::router(tx);
 
             println!("vimcord daemon running on :8787");
 
-            let listener = tokio::net::TcpListener::bind("0.0.0.0:8787").await.unwrap();
-            
-            axum::serve(listener, app).await.expect("server crashed");
+            let listener = tokio::net::TcpListener::bind("0.0.0.0:8787")
+                .await
+                .unwrap();
+
+            axum::serve(listener, app)
+                .await
+                .expect("server crashed");
         }
 
         Command::Update { details, state, file, workspace } => {
@@ -62,9 +68,15 @@ async fn run_cli_update(
     let host = resolve_host();
     let url = format!("http://{}:8787/update", host);
 
+    let start_timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
     let payload = PresenceState {
         details: details.unwrap_or_else(|| "In Editor".into()),
         state: state.unwrap_or_else(|| "Editing".into()),
+        start_timestamp,
         file,
         workspace,
     };
@@ -83,6 +95,6 @@ async fn run_cli_clear() {
     let client = Client::new();
     match client.post(url).send().await {
         Ok(_) => println!("vimcord: presence cleared"),
-        Err(e) => eprintln!("vimcord error: {}", e)
+        Err(e) => eprintln!("vimcord error: {}", e),
     }
 }
