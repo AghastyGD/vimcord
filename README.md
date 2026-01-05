@@ -132,8 +132,8 @@ the current activity without modifying timestamps.
 
 ## Roadmap
 
- - [] File language detection
--  [] Discord assets (icons)
--  [] Idle detection
--  [] Config file support
--  [] Plugin improvements
+ - [ ] File language detection
+-  [ ] Discord assets (icons)
+-  [ ] Idle detection
+-  [ ] Config file support
+-  [ ] Plugin improvements
