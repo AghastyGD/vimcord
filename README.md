@@ -4,6 +4,7 @@
 `vimcord` is a lightweight **Discord Rich Presence daemon** designed to integrate **Vim / Neovim running inside WSL** with the **Discord client running on Windows**.
 
 It aims to address a common limitation where editors running in WSL cannot directly communicate with Discord Rich Presence due to IPC and OS boundaries.
+
 ---
 
 ## Features
