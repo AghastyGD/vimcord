@@ -1,12 +1,9 @@
 
 # vimcord
 
-`vimcord` is a lightweight **Discord Rich Presence daemon** designed to integrate  
-**Vim / Neovim running inside WSL** with the **Discord client running on Windows**.
+`vimcord` is a lightweight **Discord Rich Presence daemon** designed to integrate **Vim / Neovim running inside WSL** with the **Discord client running on Windows**.
 
-It aims to address a common limitation where editors running in WSL cannot
-directly communicate with Discord Rich Presence due to IPC and OS boundaries.
-
+It aims to address a common limitation where editors running in WSL cannot directly communicate with Discord Rich Presence due to IPC and OS boundaries.
 ---
 
 ## Features
@@ -117,16 +114,14 @@ The plugin automatically updates Discord presence when entering or saving files.
 
 ## Known Limitations
 
-- Discord Rich Presence may be cleared after ~30 seconds in certain setups,
-  even while the daemon is running.
+- Discord Rich Presence may be cleared after ~30 seconds in certain setups, even while the daemon is running.
 - This behavior appears to be influenced by:
   - Discord client version
   - Other active Rich Presence integrations
   - Use of external (non-embedded) RPC clients
 
 **Mitigation:**  
-To improve stability, `vimcord` uses a low-frequency heartbeat that re-sends
-the current activity without modifying timestamps.
+To improve stability, `vimcord` uses a low-frequency heartbeat that re-sends the current activity without modifying timestamps.
 
 ---
 
